@@ -19,3 +19,19 @@ export const registerSchema = yup.object({
     })
 });
 
+export const loginSchema = yup.object({
+    body:yup.object({
+        email:yup.string().email('Invalid email format'),
+        password:yup.string().required('Password is required'),
+        phoneNumber:yup.string()
+
+    }).test('emailOrPhone','Either email or phone number is required',function(value){
+        const {email , phoneNumber} = value || {};
+        if(!email && !phoneNumber){
+            return this.createError({
+                message:'Either email or phone number is required'
+            })
+        }
+         return true;
+    })
+})

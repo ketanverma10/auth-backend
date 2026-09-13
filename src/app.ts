@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser  from "cookie-parser";
 import router  from "./routes/auth.routes.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express()
 
@@ -45,5 +46,7 @@ app.use('/auth',router)
 app.get("/",(req,res)=>{
  res.send('Authentication backend is running')
 })
+
+app.use(errorHandler)
 
 export default app;
