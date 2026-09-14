@@ -1,6 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { registerUser, loginUser } from "../service/auth.service.js";
+import { findSessionByRefreshToken } from "../service/session.service.js";
 import { generateAccessToken } from "../utils/token.js";
+import {
+  generateRefreshToken,
+  hashRefreshToken,
+} from "../utils/refreshToken.js";
+
+import { createSession,revokeSession } from "../service/session.service.js";
 
 export const registerController = async (
   req: Request,
@@ -45,7 +52,7 @@ export const loginController = async (
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return res.status(200).json({
-      message:"Login successfully",
+      message: "Login successfully",
       accessToken,
       user: {
         id: user.id,
@@ -54,6 +61,48 @@ export const loginController = async (
         email: user.email,
         phoneNumber: user.phoneNumber,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const refreshController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      throw new Error("Refresh Token is required");
+    }
+
+    const session = await findSessionByRefreshToken(refreshToken);
+
+    const newRefreshToken = generateRefreshToken();
+
+    const newRefreshTokenHash = hashRefreshToken(newRefreshToken);
+
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    await revokeSession(session.id);
+
+    await createSession(session.userId, newRefreshTokenHash, expiresAt);
+
+    const newAccessToken = generateAccessToken(session.userId);
+
+    res.cookie("refreshToken", newRefreshToken, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: "/auth",
+});
+
+    return res.status(200).json({
+      accessToken: newAccessToken,
     });
   } catch (error) {
     next(error);

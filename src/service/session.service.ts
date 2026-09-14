@@ -25,18 +25,41 @@ export const createSession = async (
   });
 };
 
-export const findSessionByRefreshToken = async(refreshToken:string)=>{
-    if(!refreshToken){
-        throw new Error('Refresh token is required')
-    }
+export const findSessionByRefreshToken = async (refreshToken: string) => {
+  if (!refreshToken) {
+    throw new Error("Refresh token is required");
+  }
 
-    const refreshTokenHash = hashRefreshToken(refreshToken)
+  const refreshTokenHash = hashRefreshToken(refreshToken);
 
-    const [session] = await db.select().from(sessions).where(eq(sessions.refreshTokenHash,refreshToken))
+  const [session] = await db
+    .select()
+    .from(sessions)
+    .where(eq(sessions.refreshTokenHash, refreshToken));
 
-    if (!session) {
+  if (!session) {
     throw new Error("Invalid refresh token");
   }
-  return sessions;
 
+  if (session.revokedAt) {
+    throw new Error("Refresh token has been revoked");
+  }
+
+  if (session.expiresAt <= new Date()) {
+    throw new Error("Refresh token has expired");
+  }
+  return session;
+};
+
+export const revokeSession = async(sessionId:string)=>{
+  if(!sessionId){
+    throw new Error("Session Id is required")
+  }
+
+  await db
+    .update(sessions)
+    .set({
+      revokedAt: new Date(),
+    })
+    .where(eq(sessions.id, sessionId));
 }
