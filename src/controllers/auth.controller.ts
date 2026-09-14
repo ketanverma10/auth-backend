@@ -34,11 +34,18 @@ export const loginController = async (
 ) => {
   try {
     const data = req.body;
-    const user = await loginUser(data);
+    const { user, refreshToken } = await loginUser(data);
 
     const accessToken = generateAccessToken(user.id);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     return res.status(200).json({
-      message: "Login successfully",
+      message:"Login successfully",
       accessToken,
       user: {
         id: user.id,
@@ -52,5 +59,3 @@ export const loginController = async (
     next(error);
   }
 };
-
-

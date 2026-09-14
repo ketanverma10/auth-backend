@@ -18,4 +18,16 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const sessions = pgTable("sessions",{
+  id:uuid("id").defaultRandom().primaryKey(),
+  userId:uuid("user_id").notNull().references(()=>users.id),
+  refreshTokenHash:varchar("referesh_token_hash",{length:255}).notNull(),
+   expiresAt: timestamp("expires_at").notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+
+  revokedAt: timestamp("revoked_at"),
+
+
+})
 
