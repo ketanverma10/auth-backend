@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { registerUser, loginUser } from "../service/auth.service.js";
-import { findSessionByRefreshToken } from "../service/session.service.js";
+import { findSessionByRefreshToken, rotateSession } from "../service/session.service.js";
 import { generateAccessToken } from "../utils/token.js";
 import {
   generateRefreshToken,
@@ -87,22 +87,57 @@ export const refreshController = async (
 
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    await revokeSession(session.id);
+    // await revokeSession(session.id);
 
-    await createSession(session.userId, newRefreshTokenHash, expiresAt);
+    // await createSession(session.userId, newRefreshTokenHash, expiresAt);
+
+    await rotateSession(session.id,session.userId,newRefreshTokenHash,expiresAt)
 
     const newAccessToken = generateAccessToken(session.userId);
 
-    res.cookie("refreshToken", newRefreshToken, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  path: "/auth",
-});
+      res.cookie("refreshToken", newRefreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: "/auth",
+  });
 
     return res.status(200).json({
       accessToken: newAccessToken,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logoutController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(200).json({
+        message: "Logged out successfully",
+      });
+    }
+
+    const session = await findSessionByRefreshToken(refreshToken);
+
+    await revokeSession(session.id);
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/auth",
+    });
+
+    return res.status(200).json({
+      message: "Logged out successfully",
     });
   } catch (error) {
     next(error);

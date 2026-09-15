@@ -35,7 +35,7 @@ export const findSessionByRefreshToken = async (refreshToken: string) => {
   const [session] = await db
     .select()
     .from(sessions)
-    .where(eq(sessions.refreshTokenHash, refreshToken));
+    .where(eq(sessions.refreshTokenHash, refreshTokenHash));
 
   if (!session) {
     throw new Error("Invalid refresh token");
@@ -51,9 +51,9 @@ export const findSessionByRefreshToken = async (refreshToken: string) => {
   return session;
 };
 
-export const revokeSession = async(sessionId:string)=>{
-  if(!sessionId){
-    throw new Error("Session Id is required")
+export const revokeSession = async (sessionId: string) => {
+  if (!sessionId) {
+    throw new Error("Session Id is required");
   }
 
   await db
@@ -62,4 +62,41 @@ export const revokeSession = async(sessionId:string)=>{
       revokedAt: new Date(),
     })
     .where(eq(sessions.id, sessionId));
-}
+};
+
+export const rotateSession = async (
+  sessionId: string,
+  userId: string,
+  newRefreshTokenHash: string,
+  expiresAt: Date,
+) => {
+  if(!sessionId){
+    throw new Error('SessionId is required')
+  }
+
+  if(!userId){
+    throw new Error('User Id is required')
+  }
+
+  if(!newRefreshTokenHash){
+    throw new Error('new Refresh Token Hash is required')
+  }
+
+  if(!expiresAt){
+    throw new Error('expiresAt is required')
+  }
+
+  await db.transaction(async(tx)=>{
+    await tx.update(sessions).set({revokedAt:new Date(),
+
+    }).where(eq(sessions.id,sessionId))
+
+    await tx.insert(sessions).values({
+      userId,
+      refreshTokenHash:newRefreshTokenHash,
+      expiresAt
+    })
+  });
+  
+
+};
