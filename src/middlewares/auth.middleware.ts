@@ -4,14 +4,14 @@ import { verifyAccessToken } from "../utils/token.js";
 export const authMiddleware = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
-    const accessToken = req.headers.authorization;
+    const accessToken = req.cookies.accessToken;
 
     if (!accessToken) {
       return res.status(401).json({
-        message: "Authorization header is missing",
+        message: "AccessToken is missing in cookies",
       });
     }
 

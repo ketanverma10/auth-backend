@@ -70,33 +70,32 @@ export const rotateSession = async (
   newRefreshTokenHash: string,
   expiresAt: Date,
 ) => {
-  if(!sessionId){
-    throw new Error('SessionId is required')
+  if (!sessionId) {
+    throw new Error("SessionId is required");
   }
 
-  if(!userId){
-    throw new Error('User Id is required')
+  if (!userId) {
+    throw new Error("User Id is required");
   }
 
-  if(!newRefreshTokenHash){
-    throw new Error('new Refresh Token Hash is required')
+  if (!newRefreshTokenHash) {
+    throw new Error("new Refresh Token Hash is required");
   }
 
-  if(!expiresAt){
-    throw new Error('expiresAt is required')
+  if (!expiresAt) {
+    throw new Error("expiresAt is required");
   }
 
-  await db.transaction(async(tx)=>{
-    await tx.update(sessions).set({revokedAt:new Date(),
-
-    }).where(eq(sessions.id,sessionId))
+  await db.transaction(async (tx) => {
+    await tx
+      .update(sessions)
+      .set({ revokedAt: new Date() })
+      .where(eq(sessions.id, sessionId));
 
     await tx.insert(sessions).values({
       userId,
-      refreshTokenHash:newRefreshTokenHash,
-      expiresAt
-    })
+      refreshTokenHash: newRefreshTokenHash,
+      expiresAt,
+    });
   });
-  
-
 };

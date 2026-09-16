@@ -1,13 +1,16 @@
 import { Request, Response, NextFunction } from "express";
 import { registerUser, loginUser } from "../service/auth.service.js";
-import { findSessionByRefreshToken, rotateSession } from "../service/session.service.js";
+import {
+  findSessionByRefreshToken,
+  rotateSession,
+} from "../service/session.service.js";
 import { generateAccessToken } from "../utils/token.js";
 import {
   generateRefreshToken,
   hashRefreshToken,
 } from "../utils/refreshToken.js";
 
-import { createSession,revokeSession } from "../service/session.service.js";
+import { createSession, revokeSession } from "../service/session.service.js";
 
 export const registerController = async (
   req: Request,
@@ -45,15 +48,24 @@ export const loginController = async (
 
     const accessToken = generateAccessToken(user.id);
 
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000,
+      path: "/",
+    });
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/auth",
     });
+
     return res.status(200).json({
       message: "Login successfully",
-      accessToken,
       user: {
         id: user.id,
         firstName: user.firstName,
@@ -91,20 +103,33 @@ export const refreshController = async (
 
     // await createSession(session.userId, newRefreshTokenHash, expiresAt);
 
-    await rotateSession(session.id,session.userId,newRefreshTokenHash,expiresAt)
+    await rotateSession(
+      session.id,
+      session.userId,
+      newRefreshTokenHash,
+      expiresAt,
+    );
 
     const newAccessToken = generateAccessToken(session.userId);
 
-      res.cookie("refreshToken", newRefreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: "/auth",
-  });
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/auth",
+    });
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000,
+      path: "/",
+    });
 
     return res.status(200).json({
-      accessToken: newAccessToken,
+      message: "Access token refreshed successfully",
     });
   } catch (error) {
     next(error);
@@ -134,6 +159,13 @@ export const logoutController = async (
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/auth",
+    });
+
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
     });
 
     return res.status(200).json({

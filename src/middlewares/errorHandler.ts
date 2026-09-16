@@ -6,7 +6,7 @@ export const errorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  if (error.message === "User alredy exist") {
+  if (error.message === "User already exists") {
     return res.status(409).json({
       message: error.message,
     });

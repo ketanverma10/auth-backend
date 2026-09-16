@@ -6,10 +6,11 @@ export const profileController = async (
   next: NextFunction,
 ) => {
   try {
+    const userId = req.user;
 
-    const userId = req.user
-
-    if (!userId) { return res.status(401).json({ message: "Unauthorized", }); }
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     const user = await getUserById(userId);
     return res
