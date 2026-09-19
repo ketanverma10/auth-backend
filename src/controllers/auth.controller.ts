@@ -10,7 +10,8 @@ import {
   hashRefreshToken,
 } from "../utils/refreshToken.js";
 
-import { createSession, revokeSession } from "../service/session.service.js";
+import { revokeSession } from "../service/session.service.js";
+import { generateCsrfToken } from "../utils/csrfToken.js";
 
 export const registerController = async (
   req: Request,
@@ -174,4 +175,24 @@ export const logoutController = async (
   } catch (error) {
     next(error);
   }
+};
+
+export const csrfController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const csrfToken = generateCsrfToken();
+
+  res.cookie("csrfToken", csrfToken, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 15 * 60 * 1000,
+    path: "/csrf",
+  });
+
+  return res.status(200).json({
+    message: "CSRF token generated successfully",
+  });
 };
