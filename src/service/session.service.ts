@@ -2,6 +2,7 @@ import { hashRefreshToken } from "../utils/refreshToken.js";
 import { db } from "./../db/index.js";
 import { or, eq } from "drizzle-orm";
 import { sessions } from "./../db/schema.js";
+import { AppError } from "../utils/appError.js";
 
 export const createSession = async (
   userId: string,
@@ -9,13 +10,13 @@ export const createSession = async (
   expiresAt: Date,
 ) => {
   if (!userId) {
-    throw new Error("UserId is required");
+    throw new AppError("UserId is required", 400);
   }
   if (!refreshTokenHash) {
-    throw new Error("Refresh token hash is required");
+   throw new AppError("Refresh token hash is required", 400);
   }
   if (!expiresAt) {
-    throw new Error("Expire date is required");
+   throw new AppError("Expire date is required", 400);
   }
 
   await db.insert(sessions).values({
@@ -27,7 +28,7 @@ export const createSession = async (
 
 export const findSessionByRefreshToken = async (refreshToken: string) => {
   if (!refreshToken) {
-    throw new Error("Refresh token is required");
+    throw new AppError("Refresh token is required", 400);
   }
 
   const refreshTokenHash = hashRefreshToken(refreshToken);
@@ -38,22 +39,22 @@ export const findSessionByRefreshToken = async (refreshToken: string) => {
     .where(eq(sessions.refreshTokenHash, refreshTokenHash));
 
   if (!session) {
-    throw new Error("Invalid refresh token");
+  throw new AppError("Invalid refresh token", 401);
   }
 
   if (session.revokedAt) {
-    throw new Error("Refresh token has been revoked");
+   throw new AppError("Refresh session has been revoked", 401);
   }
 
   if (session.expiresAt <= new Date()) {
-    throw new Error("Refresh token has expired");
+   throw new AppError("Refresh session has expired", 401);
   }
   return session;
 };
 
 export const revokeSession = async (sessionId: string) => {
   if (!sessionId) {
-    throw new Error("Session Id is required");
+ throw new AppError("Session ID is required", 400);
   }
 
   await db
@@ -71,19 +72,19 @@ export const rotateSession = async (
   expiresAt: Date,
 ) => {
   if (!sessionId) {
-    throw new Error("SessionId is required");
+   throw new AppError("SessionId is required", 400);
   }
 
   if (!userId) {
-    throw new Error("User Id is required");
+   throw new AppError("User Id is required", 400);
   }
 
   if (!newRefreshTokenHash) {
-    throw new Error("new Refresh Token Hash is required");
+    throw new AppError("New Refresh Token Hash is required", 400);
   }
 
   if (!expiresAt) {
-    throw new Error("expiresAt is required");
+   throw new AppError("expiresAt is required", 400);
   }
 
   await db.transaction(async (tx) => {

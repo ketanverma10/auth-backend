@@ -1,10 +1,10 @@
 import { db } from "../db/index.js";
 import { users } from "../db/schema.js";
 import { eq } from "drizzle-orm";
-
+import { AppError } from "../utils/AppError.js";
 export const getUserById = async (userId: string) => {
   if (!userId) {
-    throw new Error("User ID is required");
+   throw new AppError("User ID is required", 400);
   }
 
   const [userData] = await db
@@ -19,7 +19,7 @@ export const getUserById = async (userId: string) => {
     .where(eq(users.id, userId));
 
   if (!userData) {
-    throw new Error("User not found");
+   throw new AppError("User not found", 404);
   }
 
   return userData;

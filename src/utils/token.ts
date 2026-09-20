@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken" ;
+import { AppError } from "./AppError.js";
 
 export const generateAccessToken=(userId:string)=>{
 
     if(!userId){
-        throw new Error('User Id is null')
+       throw new AppError("expiresAt is required", 400);
     }
 
     return jwt.sign(
@@ -17,7 +18,7 @@ export const generateAccessToken=(userId:string)=>{
 
 export const verifyAccessToken = (token:string)=>{
     if(!token){
-        throw new Error('token is required')
+        throw new AppError("Access token is required", 401);
     }
 
     const decoded = jwt.verify(token,process.env.JWT_ACCESS_SECRET!)

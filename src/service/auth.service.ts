@@ -6,7 +6,7 @@ import {
   generateRefreshToken,
   hashRefreshToken,
 } from "../utils/refreshToken.js";
-
+import { AppError } from "../utils/AppError.js";
 import { createSession } from "./session.service.js";
 
 export const registerUser = async (data: {
@@ -17,7 +17,7 @@ export const registerUser = async (data: {
   password: string;
 }) => {
   if (!data.email && !data.phoneNumber) {
-    throw new Error("Either email or phone number is required");
+    throw new AppError("Either email or phone number is required", 400);
   }
   let whereCondition;
 
@@ -34,7 +34,7 @@ export const registerUser = async (data: {
   const existingUser = await db.select().from(users).where(whereCondition);
 
   if (existingUser.length > 0) {
-    throw new Error("User already exists");
+    throw new AppError("User already exists", 409);
   }
 
   const passwordHash = await hashPassword(data.password);
@@ -58,7 +58,7 @@ export const loginUser = async (data: {
   password: string;
 }) => {
   if (!data.email && !data.phoneNumber) {
-    throw new Error("User or Password is wrong ");
+    throw new AppError("Either email or phone number is required", 400);
   }
   let whereCondition;
 
@@ -71,7 +71,7 @@ export const loginUser = async (data: {
   const existingUser = await db.select().from(users).where(whereCondition);
 
   if (existingUser.length === 0) {
-    throw new Error("User or Password is wrong ");
+    throw new AppError("Invalid email/phone or password", 401);
   }
 
   const user = existingUser[0];
@@ -82,7 +82,7 @@ export const loginUser = async (data: {
   );
 
   if (!isPasswordValid) {
-    throw new Error("Invalid email/password or password");
+    throw new AppError("Invalid email/phone or password", 401);
   }
 
   const refreshToken = generateRefreshToken();

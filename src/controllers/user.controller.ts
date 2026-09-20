@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { getUserById } from "../service/user.service.js";
+import { AppError } from "../utils/AppError.js";
 export const profileController = async (
   req: Request,
   res: Response,
@@ -9,7 +10,7 @@ export const profileController = async (
     const userId = req.user;
 
     if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+     throw new AppError("Unauthorized", 401);
     }
 
     const user = await getUserById(userId);
