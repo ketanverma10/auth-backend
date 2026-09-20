@@ -11,12 +11,13 @@ import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { profileController } from "../controllers/user.controller.js";
 import { refreshController } from "../controllers/auth.controller.js";
 import { csrfChecker } from "../middlewares/csrfMiddleware.js";
+import { authRateLimiter } from "../middlewares/rateLimiter.js";
 const router = Router();
 
 router.post("/register", validateYupSchema(registerSchema), registerController);
-router.post("/login", validateYupSchema(loginSchema), loginController);
+router.post("/login",authRateLimiter, validateYupSchema(loginSchema), loginController);
 router.get("/profile", authMiddleware, profileController);
-router.post("/refresh",csrfChecker, refreshController);
+router.post("/refresh",authRateLimiter,csrfChecker, refreshController);
 router.post("/logout",csrfChecker, logoutController);
 router.get("/csrf", csrfController);
 export default router;

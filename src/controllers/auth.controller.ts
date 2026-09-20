@@ -177,10 +177,9 @@ export const logoutController = async (
   }
 };
 
-export const csrfController = async (
+export const csrfController = (
   req: Request,
-  res: Response,
-  next: NextFunction,
+  res: Response
 ) => {
   const csrfToken = generateCsrfToken();
 
@@ -189,7 +188,7 @@ export const csrfController = async (
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 15 * 60 * 1000,
-    path: "/csrf",
+    path: "/",
   });
 
   return res.status(200).json({

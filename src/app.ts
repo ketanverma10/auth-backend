@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser  from "cookie-parser";
 import router  from "./routes/auth.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import helmet from "helmet";
 
 const app = express()
 
@@ -14,6 +15,7 @@ app.use(cors({
     credentials:true
 
 }))
+app.use(helmet())
 
 app.use('/auth',router)
 // app.get("/cookie/read",(req,res)=>{
