@@ -2,7 +2,7 @@ import { hashRefreshToken } from "../utils/refreshToken.js";
 import { db } from "./../db/index.js";
 import { or, eq } from "drizzle-orm";
 import { sessions } from "./../db/schema.js";
-import { AppError } from "../utils/appError.js";
+import { AppError } from "../utils/AppError.js";
 
 export const createSession = async (
   userId: string,
