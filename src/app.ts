@@ -4,6 +4,7 @@ import cookieParser  from "cookie-parser";
 import router  from "./routes/auth.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import helmet from "helmet";
+import passport from "./config/passport.js";
 
 const app = express()
 
@@ -16,6 +17,8 @@ app.use(cors({
 
 }))
 app.use(helmet())
+
+app.use(passport.initialize());
 
 app.use('/auth',router)
 // app.get("/cookie/read",(req,res)=>{

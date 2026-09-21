@@ -22,6 +22,20 @@
       "when": 1789290315752,
       "tag": "0002_far_mandarin",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789979669523,
+      "tag": "0003_next_black_knight",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789982079148,
+      "tag": "0004_aromatic_mister_sinister",
+      "breakpoints": true
     }
   ]
 }

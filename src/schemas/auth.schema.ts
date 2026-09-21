@@ -1,3 +1,4 @@
+import { pgTable } from 'drizzle-orm/pg-core';
 import * as yup from 'yup'
 
 export const registerSchema = yup.object({

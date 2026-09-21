@@ -76,6 +76,10 @@ export const loginUser = async (data: {
 
   const user = existingUser[0];
 
+  if (!user.passwordHash) {
+    throw new AppError("Invalid email/phone or password", 401);
+  }
+
   const isPasswordValid = await comparePassword(
     data.password,
     user.passwordHash,
